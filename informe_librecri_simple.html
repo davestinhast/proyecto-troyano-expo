@@ -1,0 +1,991 @@
+<title>LIBRECRI — Guía para Entender el Proyecto</title>
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────────── */
+:root {
+  --bg:         #F5F7FA;
+  --surface:    #FFFFFF;
+  --border:     #DDE2ED;
+  --text:       #0F1623;
+  --muted:      #5A6275;
+  --accent:     #D94F2B;
+  --accent-dim: #B33D20;
+  --code-bg:    #1A2236;
+  --code-text:  #A8B8D0;
+  --success:    #1D6F42;
+  --warn:       #8B5000;
+  --num:        #8A94A8;
+  --sidebar-w:  240px;
+  --col-max:    68ch;
+  --radius:     4px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:       #0B0F1A;
+    --surface:  #111827;
+    --border:   #1F2B3E;
+    --text:     #E8EDF5;
+    --muted:    #7A8599;
+    --num:      #3D4A60;
+  }
+}
+:root[data-theme="light"] {
+  --bg:       #F5F7FA;
+  --surface:  #FFFFFF;
+  --border:   #DDE2ED;
+  --text:     #0F1623;
+  --muted:    #5A6275;
+  --num:      #8A94A8;
+}
+:root[data-theme="dark"] {
+  --bg:       #0B0F1A;
+  --surface:  #111827;
+  --border:   #1F2B3E;
+  --text:     #E8EDF5;
+  --muted:    #7A8599;
+  --num:      #3D4A60;
+}
+
+/* ─── RESET / BASE ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 15.5px;
+  line-height: 1.75;
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ─── LAYOUT ─────────────────────────────────────────────────── */
+.shell { display: flex; min-height: 100vh; }
+nav.toc {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 2rem 1.25rem 2rem 1.5rem;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.toc-brand {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+}
+.toc-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: .75rem;
+}
+.toc ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.toc li a {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted);
+  padding: 3px 6px;
+  border-radius: var(--radius);
+  line-height: 1.5;
+  transition: color .15s, background .15s;
+}
+.toc li a:hover { color: var(--text); background: var(--border); text-decoration: none; }
+.toc li.sub a { padding-left: 16px; font-size: 12px; }
+.toc-divider { height: 1px; background: var(--border); margin: .75rem 0; }
+.theme-btn {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .4rem .75rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
+  transition: border-color .15s;
+}
+.theme-btn:hover { border-color: var(--accent); color: var(--text); }
+
+main { flex: 1; min-width: 0; padding: 3.5rem 4rem 6rem 3.5rem; }
+.content { max-width: 760px; }
+
+/* ─── COVER ──────────────────────────────────────────────────── */
+.cover {
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 2.5rem;
+  margin-bottom: 3.5rem;
+}
+.cover-eyebrow {
+  font-size: 11px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: .75rem;
+}
+.cover h1 {
+  font-size: clamp(26px, 4vw, 38px);
+  font-weight: 800;
+  line-height: 1.15;
+  text-wrap: balance;
+  letter-spacing: -.02em;
+  color: var(--text);
+  margin-bottom: .5rem;
+}
+.cover-sub {
+  font-size: 16px;
+  color: var(--muted);
+  margin-bottom: 2rem;
+  font-weight: 400;
+  max-width: 60ch;
+}
+.cover-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: .5rem 2rem;
+}
+.cover-meta-item { display: flex; flex-direction: column; }
+.cover-meta-label {
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+.cover-meta-value {
+  font-size: 13.5px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* ─── SECTIONS ───────────────────────────────────────────────── */
+.section { margin-bottom: 4rem; }
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--border);
+}
+.section-num {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--num);
+  flex-shrink: 0;
+  letter-spacing: .05em;
+}
+.section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: var(--text);
+  text-wrap: balance;
+}
+h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 2rem;
+  margin-bottom: .6rem;
+  letter-spacing: -.005em;
+}
+p { margin-bottom: 1rem; max-width: var(--col-max); color: var(--text); }
+ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; max-width: var(--col-max); }
+li { margin-bottom: .4rem; line-height: 1.7; }
+
+/* ─── SUMMARY BOX ────────────────────────────────────────────── */
+.summary-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  max-width: var(--col-max);
+}
+.summary-box p { margin-bottom: 0; }
+
+/* ─── ANALOGÍA ───────────────────────────────────────────────── */
+.analogy {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid #3B82F6;
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  max-width: var(--col-max);
+}
+.analogy-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #3B82F6;
+  margin-bottom: .4rem;
+}
+.analogy p { margin-bottom: 0; font-size: 14px; }
+
+/* ─── CODE ───────────────────────────────────────────────────── */
+pre, code {
+  font-family: 'Courier New', 'Cascadia Code', 'Fira Mono', monospace;
+  font-size: 12.5px;
+}
+code {
+  background: var(--code-bg);
+  color: #7DD3FC;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  max-width: 100%;
+}
+pre code { background: none; color: inherit; padding: 0; }
+.cm { color: #475569; }
+
+/* ─── TABLES ─────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+thead th {
+  text-align: left;
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--muted);
+  padding: .5rem .75rem;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+tbody td {
+  padding: .55rem .75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.55;
+}
+tbody tr:last-child td { border-bottom: none; }
+.cmd-cell {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* ─── FLOW STEPS ─────────────────────────────────────────────── */
+.flow-steps {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-bottom: 1.5rem;
+  max-width: var(--col-max);
+}
+.flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .6rem .9rem;
+}
+.flow-step-num {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.flow-step-text { font-size: 13.5px; line-height: 1.5; }
+
+/* ─── CALLOUT ────────────────────────────────────────────────── */
+.callout {
+  display: flex;
+  gap: .75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid;
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  max-width: var(--col-max);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.callout.info   { border-left-color: #3B82F6; }
+.callout.warn   { border-left-color: #F59E0B; }
+.callout.danger { border-left-color: var(--accent); }
+.callout.ok     { border-left-color: #22C55E; }
+.callout-icon   { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+
+/* ─── QA CARD ────────────────────────────────────────────────── */
+.qa-list { display: flex; flex-direction: column; gap: 1.25rem; max-width: var(--col-max); margin-bottom: 2rem; }
+.qa-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.qa-q {
+  background: var(--code-bg);
+  padding: .75rem 1rem;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #E8EDF5;
+  border-bottom: 1px solid #1F2B3E;
+}
+.qa-a {
+  padding: .85rem 1rem;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+/* ─── ARCH DIAGRAM ───────────────────────────────────────────── */
+.arch-diagram {
+  background: var(--code-bg);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+  overflow-x: auto;
+}
+.arch-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 120px;
+}
+.arch-box {
+  background: #1F2D42;
+  border: 1px solid #2D4060;
+  border-radius: 6px;
+  padding: .75rem 1rem;
+  width: 130px;
+}
+.arch-box.accent { border-color: var(--accent); }
+.arch-box.green  { border-color: #22C55E; }
+.arch-icon { font-size: 22px; margin-bottom: 4px; }
+.arch-label { font-size: 12px; font-weight: 700; color: #CBD5E1; letter-spacing: .03em; }
+.arch-sublabel { font-size: 10px; color: #64748B; margin-top: 2px; }
+.arch-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 .5rem;
+  gap: 4px;
+  min-width: 90px;
+}
+.arch-arrow-line {
+  width: 70px; height: 1px;
+  background: #334155;
+  position: relative;
+}
+.arch-arrow-line::after {
+  content: '';
+  position: absolute;
+  right: -1px; top: -4px;
+  border: 4px solid transparent;
+  border-left: 6px solid #334155;
+}
+.arch-arrow-label {
+  font-size: 10px;
+  color: #4B5563;
+  letter-spacing: .04em;
+  text-align: center;
+  line-height: 1.3;
+  font-family: 'Courier New', monospace;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────── */
+@media (max-width: 820px) {
+  .shell { flex-direction: column; }
+  nav.toc {
+    position: static; width: 100%; height: auto;
+    border-right: none; border-bottom: 1px solid var(--border);
+    flex-direction: row; flex-wrap: wrap;
+    padding: 1rem 1.25rem; gap: .5rem;
+  }
+  .toc ul { flex-direction: row; flex-wrap: wrap; }
+  .toc li.sub a { padding-left: 8px; }
+  main { padding: 2rem 1.25rem 4rem; }
+  .cover h1 { font-size: 24px; }
+  .arch-diagram { flex-direction: column; }
+  .arch-arrow { transform: rotate(90deg); padding: .25rem 0; }
+}
+@media print {
+  nav.toc { display: none; }
+  main { padding: 0; }
+  .shell { display: block; }
+}
+</style>
+
+<div class="shell">
+
+<!-- ─── SIDEBAR TOC ──────────────────────────────────────────── -->
+<nav class="toc">
+  <div class="toc-brand">LIBRECRI<br>Guía Simple</div>
+  <div class="toc-title">Contenido</div>
+  <ul>
+    <li><a href="#resumen">Resumen rápido</a></li>
+    <li><a href="#troyano">1. ¿Qué es un troyano?</a></li>
+    <li><a href="#como-funciona">2. ¿Cómo funciona?</a></li>
+    <li><a href="#ordenes">3. ¿Cómo le damos órdenes?</a></li>
+    <li><a href="#esconder">4. ¿Cómo se esconde?</a></li>
+    <li><a href="#modulos">5. ¿Qué puede hacer?</a></li>
+    <li class="sub"><a href="#mod-pantalla">5.1 Pantalla</a></li>
+    <li class="sub"><a href="#mod-camara">5.2 Cámara</a></li>
+    <li class="sub"><a href="#mod-teclas">5.3 Teclas</a></li>
+    <li class="sub"><a href="#mod-micro">5.4 Micrófono</a></li>
+    <li><a href="#av">6. ¿Por qué no lo detectan?</a></li>
+    <li><a href="#comandos">7. Lista de órdenes</a></li>
+    <li><a href="#defensa">8. ¿Cómo nos defendemos?</a></li>
+    <li><a href="#comohice">9. ¿Cómo lo hice?</a></li>
+    <li><a href="#conclu">10. Conclusión</a></li>
+    <div class="toc-divider"></div>
+    <li><a href="#preguntas">Preguntas frecuentes</a></li>
+  </ul>
+  <button class="theme-btn" onclick="toggleTheme()">
+    <span id="theme-icon">☀</span> <span id="theme-label">Tema claro</span>
+  </button>
+</nav>
+
+<!-- ─── MAIN CONTENT ─────────────────────────────────────────── -->
+<main>
+<div class="content">
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-eyebrow">Proyecto Final — Seguridad de Aplicaciones · IDEX Carlos Salazar Romero</div>
+  <h1>LIBRECRI — Guía para Entender el Proyecto</h1>
+  <div class="cover-sub">Una explicación sencilla de cómo funciona este programa de acceso remoto, para quienes no trabajan con seguridad todos los días.</div>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Versión</span>
+      <span class="cover-meta-value">LIBRECRI v5</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Año</span>
+      <span class="cover-meta-value">2026</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Uso</span>
+      <span class="cover-meta-value">Solo laboratorio académico</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─── RESUMEN RÁPIDO ────────────────────────────────────────── -->
+<div class="section" id="resumen">
+  <div class="section-header">
+    <span class="section-num">§</span>
+    <h2>Resumen Rápido</h2>
+  </div>
+  <div class="summary-box">
+    <p>LIBRECRI es un programa que se instala en secreto en una computadora con Windows. Desde otra computadora (la nuestra, en Kali Linux), podemos darle órdenes: ver la pantalla, escuchar el micrófono, ver qué teclas presiona el usuario, y más. Todo se comunica por internet usando el protocolo HTTP, igual que cuando abres una página web, y los mensajes van cifrados para que nadie más los entienda. El proyecto se hizo con fines educativos, para aprender cómo funcionan estos ataques y así poder defenderse mejor de ellos.</p>
+  </div>
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <span>Todo lo que se muestra aquí se probó únicamente en computadoras de laboratorio que nos pertenecen. Usar este programa en computadoras ajenas sin permiso es un delito.</span>
+  </div>
+</div>
+
+<!-- ─── 1. QUÉ ES UN TROYANO ─────────────────────────────────── -->
+<div class="section" id="troyano">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>¿Qué es un Troyano?</h2>
+  </div>
+
+  <p>Un troyano (o troyano de acceso remoto, RAT por sus siglas en inglés) es un programa que se instala en una computadora haciéndose pasar por otra cosa. Una vez dentro, le da al atacante control total sobre esa máquina desde lejos, sin que el dueño de la computadora se dé cuenta.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">Analogía</div>
+    <p>Imagina que el caballo de Troya de la mitología griega es un archivo llamado <em>actualizacion.exe</em>. El usuario lo abre creyendo que es una actualización real. Dentro hay soldados (el troyano) que abren la puerta de la ciudad (dan acceso al atacante) desde adentro.</p>
+  </div>
+
+  <p>Los troyanos reales que usan los hackers en el mundo funcionan exactamente igual que LIBRECRI. Familias famosas como <strong>Cobalt Strike</strong>, <strong>Meterpreter</strong> o <strong>njRAT</strong> usan las mismas ideas que aplicamos en este proyecto. La diferencia es que LIBRECRI lo construimos nosotros desde cero para entender cada parte.</p>
+
+  <p>En LIBRECRI, el troyano se llama <strong>implant</strong> (el que se instala en la víctima) y el programa que lo controla se llama <strong>servidor C2</strong> o simplemente el C2 (Command and Control — control y comando).</p>
+</div>
+
+<!-- ─── 2. CÓMO FUNCIONA ───────────────────────────────────────── -->
+<div class="section" id="como-funciona">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>¿Cómo Funciona LIBRECRI?</h2>
+  </div>
+
+  <p>El sistema tiene tres partes que trabajan juntas:</p>
+
+  <div class="arch-diagram">
+    <div class="arch-node">
+      <div class="arch-box" style="border-color:#A855F7">
+        <div class="arch-icon">⚙️</div>
+        <div class="arch-label">generador.py</div>
+        <div class="arch-sublabel">Crea todo</div>
+      </div>
+    </div>
+    <div class="arch-arrow">
+      <div class="arch-arrow-label">fabrica</div>
+      <div class="arch-arrow-line"></div>
+    </div>
+    <div class="arch-node">
+      <div class="arch-box green">
+        <div class="arch-icon">🖥</div>
+        <div class="arch-label">c2_server.py</div>
+        <div class="arch-sublabel">Nosotros · Kali</div>
+      </div>
+    </div>
+    <div class="arch-arrow">
+      <div class="arch-arrow-label">órdenes ↔ resultados</div>
+      <div class="arch-arrow-line"></div>
+    </div>
+    <div class="arch-node">
+      <div class="arch-box accent">
+        <div class="arch-icon">💀</div>
+        <div class="arch-label">implant.exe</div>
+        <div class="arch-sublabel">Víctima · Windows</div>
+      </div>
+    </div>
+  </div>
+
+  <ul>
+    <li><strong>generador.py:</strong> es el script de Python que fabricamos. Cuando lo ejecutamos, nos pregunta la dirección IP y el puerto, y genera automáticamente tanto el troyano (implant.exe) como el servidor (c2_server.py) con claves únicas de seguridad.</li>
+    <li><strong>implant.exe:</strong> el programa que corre en la computadora víctima (en este caso, una máquina Windows de laboratorio). No abre ninguna ventana, corre en silencio en segundo plano.</li>
+    <li><strong>c2_server.py:</strong> el programa que corremos en nuestra máquina Kali. Nos muestra una consola donde escribimos órdenes y vemos los resultados.</li>
+  </ul>
+
+  <h3>El ciclo de comunicación</h3>
+  <p>El implant no espera que el servidor lo llame. Cada 850 milisegundos (menos de un segundo), el implant es el que pregunta al servidor: "¿Hay alguna orden para mí?" Esto se llama <em>polling</em>. Si no hay nada, el servidor responde vacío y el implant vuelve a esperar. Si hay una orden, el implant la ejecuta y manda el resultado de vuelta.</p>
+
+  <div class="flow-steps">
+    <div class="flow-step">
+      <span class="flow-step-num">01</span>
+      <span class="flow-step-text">El implant en la PC víctima pregunta cada 850ms: <em>"¿Tienes una orden para mí?"</em> usando una petición HTTP normal, igual que cuando el navegador pide una página web.</span>
+    </div>
+    <div class="flow-step">
+      <span class="flow-step-num">02</span>
+      <span class="flow-step-text">El servidor C2 responde con la orden cifrada (o sin nada si no hay orden pendiente).</span>
+    </div>
+    <div class="flow-step">
+      <span class="flow-step-num">03</span>
+      <span class="flow-step-text">El implant descifra la orden, la ejecuta en la PC víctima (captura pantalla, ejecuta un comando, etc.) y guarda el resultado.</span>
+    </div>
+    <div class="flow-step">
+      <span class="flow-step-num">04</span>
+      <span class="flow-step-text">El implant manda el resultado de vuelta al servidor, cifrado. El servidor lo descifra y nos lo muestra en pantalla.</span>
+    </div>
+  </div>
+
+  <div class="analogy">
+    <div class="analogy-label">Analogía</div>
+    <p>Es como un empleado que cada pocos segundos revisa su buzón de correo para ver si el jefe le mandó algo. Si hay una carta (una orden), la lee, hace lo que dice, y manda la respuesta de vuelta. Si el buzón está vacío, simplemente vuelve a esperar.</p>
+  </div>
+</div>
+
+<!-- ─── 3. ÓRDENES ────────────────────────────────────────────── -->
+<div class="section" id="ordenes">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>¿Cómo le Damos Órdenes al Troyano?</h2>
+  </div>
+
+  <p>Cuando el servidor C2 detecta que el implant se conectó, nos muestra un símbolo de espera donde podemos escribir órdenes en texto. Es parecido a usar la terminal o el símbolo del sistema (cmd), pero los comandos se ejecutan en la computadora de la víctima, no en la nuestra.</p>
+
+  <p>Por ejemplo, si escribimos <code>ls</code>, el servidor manda esa orden al implant, el implant ejecuta el equivalente en Windows (<code>dir</code>), y nos manda la lista de archivos. Si escribimos <code>screenshot</code>, el implant toma una foto de la pantalla y nos la manda como imagen.</p>
+
+  <p>Todo el texto que mandamos y recibimos viaja <strong>cifrado</strong>. Alguien que intercepte el tráfico de red solo vería una serie de bytes sin sentido, no el texto real de las órdenes ni los resultados.</p>
+</div>
+
+<!-- ─── 4. CÓMO SE ESCONDE ─────────────────────────────────────── -->
+<div class="section" id="esconder">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>¿Cómo se Esconde el Implant?</h2>
+  </div>
+
+  <p>Los antivirus buscan programas maliciosos de varias formas. LIBRECRI usa varias técnicas para hacer esa búsqueda más difícil:</p>
+
+  <h3>1. Las herramientas que usa están escondidas dentro del programa</h3>
+  <p>Cuando un antivirus analiza un programa, una de las primeras cosas que revisa es: ¿qué funciones del sistema operativo usa? Si ve que el programa llama a funciones como "crear un proceso nuevo" o "conectarse a internet", levanta una alerta. LIBRECRI guarda los nombres de esas funciones como texto mezclado con una clave secreta. El programa los descifra solo cuando los necesita, justo en el momento de usarlos.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">Analogía</div>
+    <p>Es como si en vez de llevar un cuchillo en el cinturón (donde todos lo ven), lo llevaras desmontado en una maleta con las piezas marcadas con un código que solo tú entiendes. Para el guardia de seguridad, parece equipaje normal.</p>
+  </div>
+
+  <h3>2. Usamos una clave diferente cada vez que compilamos</h3>
+  <p>Cada vez que el generador crea un nuevo implant, genera una clave secreta al azar. Eso significa que dos implants creados en días diferentes se ven completamente diferentes en bytes, aunque hagan lo mismo. Los antivirus buscan "firmas" (patrones de bytes conocidos), y si los bytes cambian, la firma ya no coincide.</p>
+
+  <h3>3. El programa tiene importaciones de "mentira"</h3>
+  <p>Para que no llame la atención que el programa tiene la lista de herramientas vacía (lo cual también es sospechoso), mostramos una lista falsa de funciones que usa: cosas como herramientas de sonido o interfaz gráfica que no levantan alarmas. Las herramientas reales están escondidas como explicamos antes.</p>
+
+  <h3>4. No abre ninguna ventana</h3>
+  <p>El implant corre en el fondo, sin mostrar ninguna ventana de consola ni interfaz. Para el usuario, es como si no existiera.</p>
+
+  <h3>5. El tráfico de red parece normal</h3>
+  <p>La comunicación usa HTTP, el mismo protocolo de las páginas web. Incluso el encabezado que manda imita al de un navegador Chrome. Para alguien mirando el tráfico de red sin profundizar, parece una visita normal a un sitio web.</p>
+</div>
+
+<!-- ─── 5. QUÉ PUEDE HACER ────────────────────────────────────── -->
+<div class="section" id="modulos">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>¿Qué Puede Hacer el Implant?</h2>
+  </div>
+
+  <p>LIBRECRI incluye cuatro módulos de captura además de control completo del sistema de archivos y línea de comandos:</p>
+
+  <h3 id="mod-pantalla">5.1 Captura de Pantalla</h3>
+  <p>Con el comando <code>screenshot</code>, el implant le pide a Windows que copie todo lo que se está mostrando en la pantalla en ese momento y lo guarde como imagen. Luego esa imagen viaja al servidor cifrada y convertida en texto (en formato Base64, que es una manera de convertir archivos en texto plano para poder mandarlos por internet). El servidor la vuelve a convertir en imagen y la guarda en nuestro escritorio.</p>
+
+  <p>Un detalle técnico: las imágenes de pantalla llena pueden ser bastante grandes (más de 1 MB de datos). Por eso tuvimos que ampliar el tamaño máximo del mensaje que el implant puede manejar a 4 MB. Antes era de 128 KB y la imagen llegaba cortada a la mitad, lo que la dejaba dañada.</p>
+
+  <h3 id="mod-camara">5.2 Fotografía con la Cámara Web</h3>
+  <p>Con <code>webcam_snap</code>, usamos una herramienta de Windows llamada <code>avicap32.dll</code> que permite controlar cámaras de video. El implant le pide al sistema que tome una foto con la primera cámara conectada, espera un segundo y medio para que la cámara se estabilice, y luego guarda la imagen y la manda de vuelta. La foto llega a nuestro escritorio como archivo .bmp.</p>
+
+  <h3 id="mod-teclas">5.3 Registro de Teclas (Keylogger)</h3>
+  <p>Con <code>keyscan_start</code>, el implant activa un "gancho" en Windows. Windows tiene un sistema donde un programa puede pedir que se le avise de cada tecla que presiona el usuario en toda la computadora, sin importar en qué ventana esté. El implant activa este aviso, va guardando las teclas en un registro interno, y cuando le pedimos con <code>keyscan_dump</code>, nos manda todo lo que se tecleó desde que activamos el gancho.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">Analogía</div>
+    <p>Es como poner un micrófono en la máquina de escribir. Cada golpe de tecla queda grabado, sin importar si estás en el navegador, en el procesador de texto o en el chat.</p>
+  </div>
+
+  <h3 id="mod-micro">5.4 Grabación de Micrófono</h3>
+  <p>Con <code>record_mic -d 10</code> (por ejemplo, para grabar 10 segundos), el implant usa las herramientas de audio de Windows (<code>winmm.dll</code>) para grabar lo que capta el micrófono. Al terminar, construye manualmente un archivo de audio WAV y lo manda al servidor. El archivo llega a nuestro escritorio listo para reproducir.</p>
+
+  <p>Este fue el módulo que más problemas dio. El comando que se le manda al implant para iniciar la grabación es bastante largo (más de 6,000 caracteres), y el implant tenía un límite de 4,096 caracteres por mensaje. El comando llegaba cortado y fallaba en silencio. La solución fue ampliar ese límite a 24,000 caracteres.</p>
+</div>
+
+<!-- ─── 6. ANTIVIRUS ───────────────────────────────────────────── -->
+<div class="section" id="av">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2>¿Por Qué No lo Detectan los Antivirus?</h2>
+  </div>
+
+  <p>Los antivirus modernos buscan programas maliciosos de dos formas principales:</p>
+
+  <ul>
+    <li><strong>Análisis estático:</strong> revisan el archivo sin ejecutarlo, buscando patrones conocidos (firmas) o cosas sospechosas como listas de herramientas de red y control de procesos.</li>
+    <li><strong>Análisis dinámico:</strong> ejecutan el programa en un entorno controlado y miran qué hace.</li>
+  </ul>
+
+  <p>Las técnicas que usamos (claves aleatorias por compilación, esconder las herramientas en texto cifrado, lista de importaciones falsa) van dirigidas principalmente a engañar el análisis estático. Frente a un antivirus moderno con análisis de comportamiento avanzado, el implant terminaría siendo detectado con el tiempo. Eso está bien para los propósitos del proyecto: lo importante era aprender cómo funciona el ataque, no crear algo indetectable.</p>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ</span>
+    <span>Los programas de seguridad empresarial modernos como CrowdStrike o SentinelOne sí detectarían el keylogger y el uso de PowerShell para compilar código. La protección existe y funciona. Por eso se recalca la importancia de mantener los sistemas actualizados.</span>
+  </div>
+</div>
+
+<!-- ─── 7. COMANDOS ───────────────────────────────────────────── -->
+<div class="section" id="comandos">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2>Lista de Órdenes Disponibles</h2>
+  </div>
+
+  <p>Estas son todas las órdenes que se pueden mandar al implant desde el servidor:</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Orden</th>
+        <th>¿Qué hace?</th>
+        <th>¿Dónde se guarda el resultado?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="cmd-cell">sysinfo</td>
+        <td>Muestra el nombre de la PC, versión de Windows, usuario activo.</td>
+        <td>En pantalla</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">getuid</td>
+        <td>Muestra el nombre de usuario actual.</td>
+        <td>En pantalla</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">screenshot</td>
+        <td>Toma una foto del escritorio completo.</td>
+        <td>Archivo .png en nuestro escritorio (Kali)</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">webcam_snap</td>
+        <td>Toma una foto con la cámara web.</td>
+        <td>Archivo .bmp en nuestro escritorio</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">keyscan_start</td>
+        <td>Activa el registro de teclas.</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">keyscan_dump</td>
+        <td>Muestra todas las teclas registradas hasta ahora.</td>
+        <td>En pantalla</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">keyscan_stop</td>
+        <td>Desactiva el registro de teclas.</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">record_mic -d N</td>
+        <td>Graba N segundos de audio del micrófono.</td>
+        <td>Archivo .wav en nuestro escritorio</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">download &lt;archivo&gt;</td>
+        <td>Descarga un archivo de la PC víctima.</td>
+        <td>Archivo en nuestro escritorio</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">cd &lt;carpeta&gt;</td>
+        <td>Cambia la carpeta activa. Se recuerda para los comandos siguientes.</td>
+        <td>En pantalla</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">ls</td>
+        <td>Lista los archivos de la carpeta actual.</td>
+        <td>En pantalla</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">cat &lt;archivo&gt;</td>
+        <td>Muestra el contenido de un archivo de texto.</td>
+        <td>En pantalla</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">ps</td>
+        <td>Lista todos los programas que están corriendo.</td>
+        <td>En pantalla</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">clipboard</td>
+        <td>Lee lo que hay copiado en el portapapeles.</td>
+        <td>En pantalla</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">persist &lt;nombre&gt;</td>
+        <td>Hace que el implant arranque automáticamente cada vez que Windows inicia.</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">net</td>
+        <td>Muestra la configuración de red de la PC víctima.</td>
+        <td>En pantalla</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">close</td>
+        <td>Cierra la sesión actual y espera una nueva conexión del implant.</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">exit</td>
+        <td>Cierra todo: apaga el implant y el servidor.</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="cmd-cell">&lt;cualquier texto&gt;</td>
+        <td>Se manda directamente a la línea de comandos de Windows en la PC víctima.</td>
+        <td>En pantalla</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ─── 8. DEFENSA ────────────────────────────────────────────── -->
+<div class="section" id="defensa">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2>¿Cómo nos Defendemos de Algo Así?</h2>
+  </div>
+
+  <p>Conocer cómo funciona un ataque es la mejor forma de defenderse. Estas son las señales de alerta que deja LIBRECRI y las formas de bloquearlo:</p>
+
+  <h3>Señales de alerta (indicadores de compromiso)</h3>
+  <ul>
+    <li>Conexiones HTTP repetidas cada un segundo aproximadamente al mismo servidor externo, sin que el usuario haya abierto nada.</li>
+    <li>Un programa corriendo sin ninguna ventana visible que hace conexiones a internet.</li>
+    <li>Presencia de un registro en Windows que arranca un programa desconocido al iniciar la sesión.</li>
+    <li>Un programa que activa el gancho de teclado de Windows sin ser una aplicación de accesibilidad o seguridad reconocida.</li>
+  </ul>
+
+  <h3>Formas de protegerse</h3>
+  <ul>
+    <li><strong>Mantener el antivirus y el sistema actualizados:</strong> las bases de datos de firmas se actualizan constantemente y eventualmente reconocen variantes nuevas.</li>
+    <li><strong>No ejecutar archivos de fuentes desconocidas:</strong> el implant necesita que alguien lo ejecute. La ingeniería social (engañar al usuario para que lo abra) es el punto de entrada más común.</li>
+    <li><strong>Usar soluciones de seguridad empresarial (EDR):</strong> programas como Microsoft Defender for Endpoint, CrowdStrike o SentinelOne detectan comportamientos sospechosos aunque no reconozcan el archivo exacto.</li>
+    <li><strong>Monitorear el tráfico de red:</strong> herramientas como Suricata o Zeek pueden detectar patrones de polling regular (conexiones repetitivas y periódicas) que son inusuales en tráfico normal.</li>
+    <li><strong>Restringir qué programas pueden correr (lista blanca de aplicaciones):</strong> Windows tiene una función llamada WDAC que solo permite ejecutar programas autorizados. Un archivo descargado de internet no estaría en esa lista.</li>
+  </ul>
+</div>
+
+<!-- ─── 9. CÓMO LO HICE ────────────────────────────────────────── -->
+<div class="section" id="comohice">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <h2>¿Cómo lo Hice?</h2>
+  </div>
+
+  <p>Esta sección explica el proceso de construcción del proyecto, paso a paso, en palabras simples. Sirve también como respuesta directa si alguien pregunta durante la presentación.</p>
+
+  <h3>Punto de partida</h3>
+  <p>Empecé estudiando cómo los troyanos reales se comunican con su servidor. La mayoría usa HTTP porque es el protocolo que casi nunca bloquean los firewalls (si lo bloquearan, no habría internet). Una vez entendido eso, el proyecto se dividió en tres partes: el troyano, el servidor y el generador que los fabrica juntos.</p>
+
+  <h3>El troyano (implant.exe)</h3>
+  <p>Lo escribí en C puro, que es el lenguaje más cercano al sistema operativo y produce archivos .exe más pequeños y difíciles de analizar que Java o Python. Usé las herramientas del sistema de Windows directamente: funciones para conectarse a internet (<code>ws2_32.dll</code>), para ejecutar comandos (<code>kernel32.dll</code>), para el keylogger (<code>user32.dll</code>) y para el audio (<code>winmm.dll</code>).</p>
+  <p>Para compilarlo en Kali Linux y que funcione en Windows, usé <strong>mingw-w64</strong>, que es un compilador cruzado: compila para Windows desde Linux.</p>
+
+  <h3>El servidor (c2_server.py)</h3>
+  <p>Lo escribí en Python. Python trae incluida una librería para hacer servidores web sencillos (<code>http.server</code>), así que no necesité instalar nada externo. El servidor muestra una consola interactiva donde escribo las órdenes, las cifra, las manda al implant, recibe la respuesta, la descifra y la muestra.</p>
+
+  <h3>El generador (generador.py)</h3>
+  <p>Es el script principal. Cuando lo ejecuto, genera las claves secretas al azar, las mete en el código fuente del troyano, compila el troyano y genera el servidor. Es como una fábrica: le pongo la dirección IP y el puerto, y me entrega el par implant+servidor listos para usar, configurados juntos con las mismas claves.</p>
+
+  <h3>Las técnicas de ocultamiento</h3>
+  <p>Las aprendí estudiando documentación técnica de Microsoft (cómo funciona el Import Address Table de los archivos .exe de Windows) y libros como <em>Practical Malware Analysis</em>. La idea de guardar los nombres de funciones cifrados con XOR es una técnica clásica que aparece en malware real. La apliqué para entender por qué funciona y cómo se detectaría.</p>
+
+  <h3>Los módulos de captura (pantalla, cámara, micrófono)</h3>
+  <p>Para captura de pantalla, usé PowerShell con las librerías de Windows ya instaladas (<code>System.Drawing</code>). Para la cámara y el micrófono, el truco fue escribir el código en C# directamente en el script de PowerShell y pedirle que lo compile en el momento de ejecutarse. Así no hay archivos extra en la PC víctima: el código se compila en memoria, corre, y desaparece.</p>
+
+  <div class="callout ok">
+    <span class="callout-icon">✓</span>
+    <span><strong>Resumen para responder en presentación:</strong> "Usé Python para el generador y el servidor, C para el troyano, y PowerShell con C# inline para los módulos de captura. Todo se compila y genera automáticamente con un solo script."</span>
+  </div>
+</div>
+
+<!-- ─── 10. CONCLUSIÓN ─────────────────────────────────────────── -->
+<div class="section" id="conclu">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <h2>Conclusión</h2>
+  </div>
+
+  <p>LIBRECRI logró todos los objetivos del proyecto. Pudimos controlar una PC con Windows desde Kali Linux: ver su pantalla, escuchar su micrófono, fotografiar con su cámara y registrar sus teclas. Todo a través de una conexión HTTP normal, con mensajes cifrados que no llaman la atención.</p>
+
+  <p>Lo más valioso del proyecto no son los módulos que funcionan, sino lo que aprendimos al construirlos:</p>
+
+  <ul>
+    <li>Un troyano no necesita ser complicado para ser funcional. Las herramientas que necesita ya están instaladas en Windows.</li>
+    <li>El punto más débil de cualquier sistema de seguridad no es el antivirus: es el usuario que ejecuta un archivo sin verificar su origen.</li>
+    <li>Saber cómo se construye un ataque permite escribir defensas mucho más precisas: reglas de red, configuraciones de seguridad y alertas que van al punto.</li>
+    <li>Las soluciones de seguridad modernas (EDR, análisis de comportamiento) sí funcionan. Los módulos que más llaman la atención, como el registro de teclas y la compilación de C# en tiempo real, serían detectados por esos sistemas.</li>
+  </ul>
+</div>
+
+<!-- ─── PREGUNTAS FRECUENTES ──────────────────────────────────── -->
+<div class="section" id="preguntas">
+  <div class="section-header">
+    <span class="section-num">§</span>
+    <h2>Preguntas Frecuentes</h2>
+  </div>
+
+  <p>Respuestas listas para las preguntas más comunes durante una presentación:</p>
+
+  <div class="qa-list">
+    <div class="qa-card">
+      <div class="qa-q">¿Por qué usaste HTTP y no otro protocolo?</div>
+      <div class="qa-a">Porque HTTP es el protocolo de las páginas web. Casi ningún firewall lo bloquea porque cortarlo implicaría quedarse sin internet. Es el canal más conveniente para un atacante.</div>
+    </div>
+    <div class="qa-card">
+      <div class="qa-q">¿Qué es el cifrado XOR que mencionas?</div>
+      <div class="qa-a">XOR es una operación matemática que mezcla cada byte de un mensaje con un número de una clave secreta. Para descifrar solo hace falta aplicar la misma operación con la misma clave. No es cifrado de alta seguridad, pero es suficiente para que el texto de las órdenes no sea legible a simple vista en el tráfico de red.</div>
+    </div>
+    <div class="qa-card">
+      <div class="qa-q">¿Esto podría usarse fuera del laboratorio?</div>
+      <div class="qa-a">Técnicamente sí, pero legalmente no. Usar este programa en computadoras sin autorización explícita del dueño es un delito en prácticamente todos los países. El proyecto existe solo en un entorno de laboratorio controlado, con máquinas que nos pertenecen.</div>
+    </div>
+    <div class="qa-card">
+      <div class="qa-q">¿Cómo lo detectaría un antivirus moderno?</div>
+      <div class="qa-a">Un antivirus con análisis de comportamiento detectaría el gancho de teclado (porque pide acceso a las teclas de todo el sistema) y el uso de PowerShell para compilar código en tiempo real (porque es una técnica que usa mucho el malware moderno). Las técnicas de ocultamiento que aplicamos van contra los antivirus que solo buscan patrones en los bytes del archivo, no los que analizan qué hace el programa mientras corre.</div>
+    </div>
+    <div class="qa-card">
+      <div class="qa-q">¿Cuánto tiempo te llevó hacerlo?</div>
+      <div class="qa-a">El proyecto se construyó de forma incremental a lo largo del curso. Empecé con la comunicación básica (mandar y recibir un texto), luego agregué el cifrado, después los módulos de captura uno por uno, y al final resolví los errores de tamaño de buffer que impedían que los módulos de cámara y micrófono funcionaran correctamente.</div>
+    </div>
+    <div class="qa-card">
+      <div class="qa-q">¿Por qué programaste el troyano en C y no en Python?</div>
+      <div class="qa-a">Python necesita que la máquina víctima tenga Python instalado, o el archivo sería muy grande (porque habría que empaquetar todo el intérprete de Python adentro). En C el resultado es un ejecutable nativo de Windows de pocos kilobytes que no necesita nada extra instalado.</div>
+    </div>
+    <div class="qa-card">
+      <div class="qa-q">¿Qué fue lo más difícil del proyecto?</div>
+      <div class="qa-a">El módulo de micrófono. El comando que se le manda al implant para iniciar la grabación es muy largo (más de 6,000 caracteres) y el implant tenía un límite de 4,096 caracteres. El comando llegaba cortado, PowerShell recibía texto inválido, y fallaba en silencio sin dar ningún error claro. Encontrar ese límite y ajustarlo fue lo que más tiempo llevó.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+</div><!-- /shell -->
+
+<script>
+(function() {
+  var stored = localStorage.getItem('librecri-simple-theme');
+  if (stored) document.documentElement.setAttribute('data-theme', stored);
+})();
+
+function toggleTheme() {
+  var root  = document.documentElement;
+  var cur   = root.getAttribute('data-theme');
+  var mq    = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var isDark = cur === 'dark' || (!cur && mq);
+  var next  = isDark ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('librecri-simple-theme', next);
+  updateThemeBtn(next === 'dark');
+}
+
+function updateThemeBtn(isDark) {
+  var icon  = document.getElementById('theme-icon');
+  var label = document.getElementById('theme-label');
+  if (icon)  icon.textContent  = isDark ? '☀' : '☾';
+  if (label) label.textContent = isDark ? 'Tema claro' : 'Tema oscuro';
+}
+
+(function() {
+  var stored = localStorage.getItem('librecri-simple-theme');
+  var mq     = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var isDark = stored === 'dark' || (!stored && mq);
+  updateThemeBtn(isDark);
+})();
+</script>
